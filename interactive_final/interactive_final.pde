@@ -1,5 +1,5 @@
 import fisica.*;
-import gifAnimation.*;
+//import gifAnimation.*;
 import java.awt.Button;
 import processing.video.*;
 // Augmented reality library
