@@ -17,9 +17,9 @@ class Catbug
     ySize = 87;
     speed = 2;
     
-    catbug = loadImage("catbug.png");
+    catbug = loadImage("courage_scared_small.png");
     
-    main = new FBox(75, 87);
+    main = new FBox(75, 78);
     main.setStatic(false);
     main.setPosition(x, y);
     main.attachImage(catbug);

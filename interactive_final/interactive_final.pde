@@ -1,4 +1,5 @@
 import fisica.*;
+import gifAnimation.*;
 import java.awt.Button;
 import processing.video.*;
 // Augmented reality library
@@ -45,6 +46,11 @@ boolean began = false;
 
 int failedDisplay = 0;
 
+PImage[] ynp;
+int ynpI;
+long ynpLast;
+boolean ynpReverse;
+
 void setup()
 {
   size(640, 480, OPENGL);
@@ -65,7 +71,7 @@ void setup()
   world.setEdges();
   world.setGrabbable(false);
   
-  world.setGravity(0, 300);
+  world.setGravity(0, 512);
   
   //moving platform array
   int offset = 0;
@@ -73,7 +79,7 @@ void setup()
   // The AR object that will help the character
   helper = new FBox(10, 300);
   helper.setStatic(true);
-  helper.setFillColor(color(random(255), random(255), random(255)));
+  helper.setFillColor(color(255, 255, 255));//color(random(255), random(255), random(255)));
   helper.setPosition(width / 2, height / 2);
   world.add(helper);
   
@@ -96,6 +102,14 @@ void setup()
 
   augmentedRealityMarkers = new MultiMarker(this, width, height, "camera_para.dat", NyAR4PsgConfig.CONFIG_PSG);
   augmentedRealityMarkers.addARMarker("patt.hiro", 80);
+  
+  //ynp = Gif.getPImages(this, "ynp.gif");
+  ynp = new PImage[112];
+  for (int i = 0; i < 112; i++)
+    ynp[i] = loadImage("ynp/ynp-" + i + ".gif");
+  ynpI = 0;
+  ynpLast = 0;
+  ynpReverse = false;
 }
 
 void mousePressed()
@@ -149,7 +163,7 @@ void draw()
 //  }
   drawLevel();
   
-  buttonBegin.display();
+  //buttonBegin.display();
 
   if (keyPressed) {
     if (key == ' ') {
@@ -159,9 +173,27 @@ void draw()
   
 }
 
+// Displays "You're Not Perfect" gif
+void drawYNP()
+{
+  imageMode(CENTER);
+  image(ynp[ynpI], width / 2, height / 2 + 50, width * 1.5, height * 1.5);
+  
+  if (ynpLast + 100 < millis()) {
+    ynpLast = millis();
+    ynpI += (ynpReverse) ? -1 : 1;
+    if (ynpI >= ynp.length || ynpI < 0) {
+      // Reverse frame direction
+      ynpReverse = (ynpReverse) ? false : true;
+      ynpI += (ynpReverse) ? -2 : 2;
+    }
+  }
+}
+
 void drawLevel()
 {
-  background(255);
+  background(0);
+  drawYNP();
   if (!drawVideo()) {
     failedDisplay++;
     if (failedDisplay > 60) {
@@ -186,8 +218,6 @@ void drawLevel()
   world.draw();
 }
 
-//@ Override void
-
 // Returns true if the video and AR fiducial marker are displaying properly, else false
 // Also adds the updated fiducial marker FPoly object to the world
 boolean drawVideo()
@@ -203,7 +233,9 @@ boolean drawVideo()
   imageMode(CORNER);
   pushMatrix();
   scale(-1.0, 1.0);
+  tint(255, 20);
   image(video, -width, 0);
+  noTint();
   popMatrix();
   
   if (rtn)
@@ -241,13 +273,15 @@ boolean drawVideo()
 //      mv[0].y += 80;
       float half = float(width / 2);
       
-//      if (mv[0].x > half)
-//        mv[0].x -= (mv[0].x - half) * 2;
-//      else
-//        mv[0].x += (half - mv[0].x) * 2;
-//      
-//      helper.setPosition(mv[0].x, mv[0].y);
-      //helper.setRotation(radians(
+      helper.setRotation(180 - calculateAngle(mv[0].x, mv[0].y, mv[1].x, mv[1].y));
+      
+      if (mv[0].x > half)
+        mv[0].x -= (mv[0].x - half) * 2;
+      else
+        mv[0].x += (half - mv[0].x) * 2;
+      
+      helper.setPosition(mv[0].x, mv[0].y);
+      //helper.setRotation(calculateAngle(mv[0].x, mv[0].y, mv[1].x, mv[1].y));
 
       // draw live video here
       //imageMode(CENTER);
@@ -262,6 +296,15 @@ boolean drawVideo()
     //return false;
   }
   return true;
+}
+
+// Calculates the angle from one 2d point to another
+static float calculateAngle(float x1, float y1, float x2, float y2)
+{
+  float deltaX = x2 - x1;
+  float deltaY = y2 - y1;
+
+  return atan2(deltaY, deltaX);
 }
 
 float getMatrixRotation()
