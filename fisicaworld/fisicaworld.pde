@@ -88,7 +88,7 @@ void setup()
   
   //perlin noise handler
   perlinX = noise(1000);
-  perlinR = map(perlinX, 0, 1, -0.05, 0.05);
+  perlinR = map(perlinX, 0, 1, -0.01, 0.01);
   
 }
 
@@ -147,7 +147,6 @@ void draw()
     if (clear < 100) {
       fill(0);
       text("Level Cleared!", 20,20);
-      text("Current Level: " + levelCount + 1, 20,40);
       resetLevel();
       catbug.setPosition(mischief.xPos,mischief.yPos);
       levelCount += 1;
@@ -158,7 +157,8 @@ void draw()
       fill(0);
       text("You're Dead!", 620,20); //trigger redemption minigame here
     }
-    
+  //display current level
+  text("Current Level: " + (levelCount), 20,40);
   }
   // important!  we have to tell the physics library to
   // compute what happens next in its simulation
