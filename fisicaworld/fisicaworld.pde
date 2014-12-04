@@ -7,6 +7,7 @@ FWorld world;
 FBox[] thePlatforms = new FBox[50];
 float[] theSpeeds     = new float[50];
 float[] theRotations = new float[50];
+int[] doesMove = new int[50];
 int platformSpeed = 1;
 int offset;
 int platformDistance;
@@ -75,6 +76,7 @@ void setup()
     
     theSpeeds[i] = random(0.01, 0.05);
     theRotations[i] = random(-5,5);
+    doesMove[i] = int(random(0,3));
   }
   
   //catbug
@@ -86,7 +88,7 @@ void setup()
   
   //perlin noise handler
   perlinX = noise(1000);
-  perlinR = map(perlinX, 0, 1, -0.01, 0.01);
+  perlinR = map(perlinX, 0, 1, -0.05, 0.05);
   
 }
 
@@ -100,24 +102,12 @@ void draw()
   {
     // tell each platform to move to the left
     thePlatforms[i].setPosition( thePlatforms[i].getX() - platformSpeed, thePlatforms[i].getY());
-    
-    if (levelCount > 1) 
-    {
-      //randomly rotates platforms
 
-      for (int j = 0; j < thePlatforms.length; j++)
-      {
-        if ((j % 2) == 0){
-        thePlatforms[j].setRotation(thePlatforms[j].getRotation() + radians((perlinR)*theRotations[j]));
-        }
-      }
-    }
-    
-    if (levelCount > 2 ) {
+    if (levelCount > 1 ) {
       println("in level 2");
       for (int h = 0; h < thePlatforms.length; h++)
       {
-        if ((h % 3) == 0){
+        if (doesMove[h] == 1){
           println( thePlatforms[h].getY() );
           
           thePlatforms[h].setPosition(thePlatforms[h].getX(), thePlatforms[h].getY() + theSpeeds[h]);
@@ -127,6 +117,21 @@ void draw()
             // flip speed
             theSpeeds[h] *= -1;
           }
+      
+          
+    if (levelCount > 2 ) 
+    {
+      //randomly rotates platforms
+
+      for (int j = 0; j < thePlatforms.length; j++)
+      {
+        if (doesMove[j] == 0){
+        thePlatforms[j].setRotation(thePlatforms[j].getRotation() + radians((perlinR)*theRotations[j]));
+        }
+      }
+    }
+    
+
           
 /*          if (thePlatforms[h].getY() < height-100) {
             thePlatforms[h].setPosition(thePlatforms[h].getX(), thePlatforms[h].getY() - 10);
