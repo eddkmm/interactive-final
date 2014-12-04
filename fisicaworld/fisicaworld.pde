@@ -5,11 +5,17 @@ import fisica.*;
 // detection on our behalf
 FWorld world;
 FBox[] thePlatforms = new FBox[50];
+float[] theSpeeds     = new float[50];
+float[] theRotations = new float[50];
 int platformSpeed = 1;
 int offset;
+int platformDistance;
 
 //Level Handler - remembers what level the player is on. Increases by increments of 1.
 int levelCount = 1;
+
+//set the platform which will trigger the start of a new level. Default = 10;
+int clearPlatform;
 
 //perlin noise variables
 float perlinX; float perlinR;
@@ -32,7 +38,15 @@ void setup()
   
   //load character image
   ctbg = loadImage("catbug.png");
+  
+  //set clear Platform (platform that sends character to next level)
+  clearPlatform = 3;
+  
+  //set distance of platforms
+  platformDistance = 200;
 
+  
+  
   // init the world with a reference to our canvas
   Fisica.init(this);
 
@@ -56,8 +70,11 @@ void setup()
     thePlatforms[i].setStatic(true);
     thePlatforms[i].setFillColor(   color(random(255), random(255), random(255) )   );
     thePlatforms[i].setPosition(offset, height/2);
-    offset += 200; //distance between platforms
+    offset += platformDistance; //distance between platforms
     world.add(thePlatforms[i]);
+    
+    theSpeeds[i] = random(0.01, 0.05);
+    theRotations[i] = random(-5,5);
   }
   
   //catbug
@@ -68,8 +85,8 @@ void setup()
   world.add(catbug);
   
   //perlin noise handler
-  perlinX = noise(10);
-  perlinR = map(perlinX, 0, 1, -5, 5);
+  perlinX = noise(1000);
+  perlinR = map(perlinX, 0, 1, -0.01, 0.01);
   
 }
 
@@ -91,21 +108,52 @@ void draw()
       for (int j = 0; j < thePlatforms.length; j++)
       {
         if ((j % 2) == 0){
-        thePlatforms[j].setRotation(thePlatforms[j].getRotation() + radians(perlinR));
+        thePlatforms[j].setRotation(thePlatforms[j].getRotation() + radians((perlinR)*theRotations[j]));
         }
       }
     }
     
+    if (levelCount > 2 ) {
+      println("in level 2");
+      for (int h = 0; h < thePlatforms.length; h++)
+      {
+        if ((h % 3) == 0){
+          println( thePlatforms[h].getY() );
+          
+          thePlatforms[h].setPosition(thePlatforms[h].getX(), thePlatforms[h].getY() + theSpeeds[h]);
+          
+          if (thePlatforms[h].getY() > height-100 || thePlatforms[h].getY() < 100)
+          {
+            // flip speed
+            theSpeeds[h] *= -1;
+          }
+          
+/*          if (thePlatforms[h].getY() < height-100) {
+            thePlatforms[h].setPosition(thePlatforms[h].getX(), thePlatforms[h].getY() - 10);
+          } */
+        }
+      }
+      
+    }
+    
     //check level clear    
-    float clear  = dist(catbug.getX(), catbug.getY(), thePlatforms[5].getX(),thePlatforms[5].getY());
-    println(clear);
+    float clear  = dist(catbug.getX(), catbug.getY(), thePlatforms[clearPlatform].getX(),thePlatforms[clearPlatform].getY());
+    //println(clear);
     if (clear < 100) {
       fill(0);
       text("Level Cleared!", 20,20);
+      text("Current Level: " + levelCount + 1, 20,40);
       resetLevel();
       catbug.setPosition(mischief.xPos,mischief.yPos);
       levelCount += 1;
     }
+    
+    //check character death
+    if (catbug.getY() >= height) {
+      fill(0);
+      text("You're Dead!", 620,20); //trigger redemption minigame here
+    }
+    
   }
   // important!  we have to tell the physics library to
   // compute what happens next in its simulation
@@ -126,7 +174,7 @@ void resetLevel()
   for (int i = 0; i < thePlatforms.length; i++)
   {
     thePlatforms[i].setPosition(offset, height/2);
-    offset += 200;
+    offset += platformDistance;
   } 
 }
 
