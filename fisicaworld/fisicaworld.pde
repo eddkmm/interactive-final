@@ -112,7 +112,7 @@ void draw()
           
           thePlatforms[h].setPosition(thePlatforms[h].getX(), thePlatforms[h].getY() + theSpeeds[h]);
           
-          if (thePlatforms[h].getY() > height-100 || thePlatforms[h].getY() < 100)
+          if (thePlatforms[h].getY() > height-150 || thePlatforms[h].getY() < 150)
           {
             // flip speed
             theSpeeds[h] *= -1;
