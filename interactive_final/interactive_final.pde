@@ -1,6 +1,6 @@
 import fisica.*;
 //import gifAnimation.*;
-import java.awt.Button;
+//import java.awt.Button;
 import processing.video.*;
 // Augmented reality library
 import jp.nyatla.nyar4psg.*;
@@ -8,7 +8,8 @@ import jp.nyatla.nyar4psg.*;
 // The Fisica "world" - this is the object that will
 // hold all of our simulated bodies and perform collision
 // detection on our behalf
-FWorld world;
+FWorld[] world = new FWorld[5];
+FWorld redemptionWorld;
 FBox[] thePlatforms = new FBox[100];
 //FBox helper;
 int platformSpeed = 1;
@@ -16,7 +17,8 @@ FBox catbug;
 
 PImage ctbg;
 
-Main mischief;
+Main[] mischief = new Main[5];
+Main redemptionMain;
 
 // character's last Y position
 float last;
@@ -51,8 +53,13 @@ int ynpI;
 long ynpLast;
 boolean ynpReverse;
 
-Level thisLevel;
+Level[] level = new Level[5];
+Level redemptionLevel;
 float scrollX;
+float lastScrollX;
+
+int globalState;
+int currentLevel;
 
 void setup()
 {
@@ -64,37 +71,26 @@ void setup()
   
   // init the world with a reference to our canvas
   Fisica.init(this);
-  world = new FWorld(-width, -height, width * 100, height * 2);
-  world.setEdges(-width, 0, width * 100, height);
-  //world.setEdges();
-  world.setGrabbable(false);
-  world.setGravity(0, 512);
-  scrollX = 0;
-
-  // set up the world
-  //world = new FWorld();
   
-  // this sets the edge of the canvas as the edge of the world
-  // if you didn't set this then the objects you create wouldn't be bound
-  // by the size of your canvas and would move out beyond the edges
-//  world.setEdges();
-//  world.setGrabbable(false);
-//  
-//  world.setGravity(0, 512);
-
-  levelCreator(0);
+  for (int i = 0; i < 5; i++) {
+    world[i] = new FWorld(-width, -height, width * 100, height * 2);
+    world[i].setEdges(-width, 0, width * 100, height * 2);
+    //world.setEdges();
+    world[i].setGrabbable(false);
+    world[i].setGravity(0, 512);
+    levelCreator(i);
+  }
+  redemptionWorld = new FWorld(-width, -height, width * 2, height * 2);
+  redemptionWorld.setEdges(-width, 0, width, height);
+  redemptionWorld.setGrabbable(false);
+  redemptionWorld.setGravity(0, 512);
+  createRedemptionLevel();
+  scrollX = 0;
   
   //moving platform array
   int offset = 0;
   
-  // The AR object that will help the character
-//  helper = new FBox(10, 300);
-//  helper.setStatic(true);
-//  helper.setFillColor(color(255, 255, 255));//color(random(255), random(255), random(255)));
-//  helper.setPosition(width / 2, height / 2);
-//  world.add(helper);
-  
-  mischief = new Main(width / 2, 0);
+  //mischief = new Main(width / 2, 0);
   
   brick = loadImage("brick.png");
   
@@ -106,10 +102,6 @@ void setup()
   
   // Buttons
   buttonBegin = new Button(width - 100, 25, 75, 50, #FFFF00, #FFA200, 0, "GO!", 24);
-  
-   // set up our color tracker to track 3 colors
-//  theTracker = new MultipleColorTracker(this, width, height, 1, 50);
-//  theTracker.video.start();
 
   augmentedRealityMarkers = new MultiMarker(this, width, height, "camera_para.dat", NyAR4PsgConfig.CONFIG_PSG);
   augmentedRealityMarkers.addARMarker("patt.hiro", 80);
@@ -121,6 +113,9 @@ void setup()
   ynpI = 0;
   ynpLast = 0;
   ynpReverse = false;
+  
+  globalState = 1;
+  currentLevel = 0;
 }
 
 void mousePressed()
@@ -133,7 +128,7 @@ void mousePressed()
   // tell the tracker to grab the pixel that the user clicked on and store it
   //theTracker.trackColor(mouseX, mouseY);
   
-  reset();
+  reset(currentLevel);
 }
 
 void mouseReleased()
@@ -155,11 +150,11 @@ void mouseReleased()
 }
 
 
-void reset()
+void reset(int level)
 {
   state = 1;
   
-  mischief.reset();
+  mischief[level].reset();
   
   rxPos = 320;
   ryPos = 740;
@@ -169,16 +164,28 @@ void reset()
 
 void draw()
 { 
-//  if (state == 1) {
-//    drawLevel();
-//  }
-  drawLevel();
+  switch(globalState) {
+    case 0:
+      // TITLE SCREEN
+      break;
+    case 1:
+      // LEVEL
+      drawLevel();
+      break;
+    case 2:
+      // REDEMPTION LEVEL
+      drawRedemptionLevel();
+      break;
+    case 3:
+      // GAME OVER
+      break;
+  }
   
   //buttonBegin.display();
 
   if (keyPressed) {
     if (key == ' ') {
-      reset();
+      reset(currentLevel);
     }
   }
   
@@ -199,6 +206,31 @@ void drawYNP()
       ynpI += (ynpReverse) ? -2 : 2;
     }
   }
+}
+
+void drawRedemptionLevel()
+{
+  background(0);
+  drawYNP();
+  if (!drawVideo()) {
+    failedDisplay++;
+    if (failedDisplay > 60) {
+      // Pause the game and inform the user their video isn't displaying
+      fill(0, 100);
+      rectMode(CORNER);
+      rect(0, 0, width, height);
+      fill(255);
+      textAlign(CENTER);
+      textSize(12);
+      text("Video is not displaying properly. The game will resume once your video displays again.", width / 2, height / 2);
+      return;
+    }
+  }
+  //background(255);
+  failedDisplay = 0;
+  
+  redemptionLevel.display(redemptionWorld, redemptionMain);
+  mischief[currentLevel].main.adjustPosition(level[currentLevel].speed, 0);
 }
 
 void drawLevel()
@@ -222,14 +254,8 @@ void drawLevel()
   //background(255);
   failedDisplay = 0;
   
-  thisLevel.display();
-  mischief.main.adjustPosition(thisLevel.speed, 0);
-  
-  // important!  we have to tell the physics library to
-  // compute what happens next in its simulation
-  //world.step();
-  // now have it draw itself to the screen
-  //world.draw();
+  level[currentLevel].display(world[currentLevel], mischief[currentLevel]);
+  mischief[currentLevel].main.adjustPosition(level[currentLevel].speed, 0);
 }
 
 // Returns true if the video and AR fiducial marker are displaying properly, else false
@@ -255,60 +281,6 @@ boolean drawVideo()
   if (rtn)
     return false;
     
-//  try {
-//    augmentedRealityMarkers.detect(video);
-//    
-//    if (augmentedRealityMarkers.isExistMarker(0)) {
-//      
-//      PVector[] mv = augmentedRealityMarkers.getMarkerVertex2D(0);
-//      // Set the AR perspective
-//      augmentedRealityMarkers.setARPerspective();
-//      
-//      // Transformation
-//      pushMatrix();
-//      setMatrix(augmentedRealityMarkers.getMarkerMatrix(0));
-//      // flip the coordinate system around so that we can draw in a more intuitive way (if you don't do this
-//      // then the x axis will be flipped)
-//      scale(-1.0, 1.0);
-//      // we are now at 0,0,0 in the dead center of the marker
-//      // if we draw anything here it will be rotated and scaled accordingly
-//      // note that the marker is 80 x 80
-//      
-//      // get the width and height of the box by finding the difference of the the x and y vectors
-//      //helper.setWidth(80);//(abs(mv[0].x - mv[1].x) + abs(mv[2].x - mv[3].x)) / 2);
-//      //helper.setHeight(80);//(abs(mv[0].y - mv[1].y) + abs(mv[2].y - mv[3].y)) / 2);
-//      
-////      float[] markerMatrix = new float[12];
-////      PMatrix blah = getMatrix();
-////      blah.get(markerMatrix);
-////      println(markerMatrix);
-//
-////      mv[0].x += 80;
-////      mv[0].y += 80;
-//      float half = float(width / 2);
-//      
-//      helper.setRotation(180 - calculateAngle(mv[0].x, mv[0].y, mv[1].x, mv[1].y));
-//      
-//      if (mv[0].x > half)
-//        mv[0].x -= (mv[0].x - half) * 2;
-//      else
-//        mv[0].x += (half - mv[0].x) * 2;
-//      
-//      helper.setPosition(mv[0].x, mv[0].y);
-//      //helper.setRotation(calculateAngle(mv[0].x, mv[0].y, mv[1].x, mv[1].y));
-//
-//      // draw live video here
-//      //imageMode(CENTER);
-//      //image(video, 0, 0, 80, 80);
-//      
-//      // Clean Up
-//      perspective();
-//      popMatrix();
-//    }
-//  } catch (Exception e) {
-//    println("Issue with AR detection ... resuming regular operation ..");
-//    //return false;
-//  }
   return true;
 }
 

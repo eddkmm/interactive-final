@@ -7,12 +7,13 @@ class Platform extends Level
   float y;
   int steps;
   float rot;
+  PImage img;
   float speed;
   boolean isMoving;
   
   int currentSteps;
   
-  Platform(int dir, float x, float y, float w, float h, float rot, float speed, float restitution)
+  Platform(FWorld world, int dir, float x, float y, float w, float h, float rot, float speed, float restitution)
   {
     this.dir = dir;
     this.rot = rot;
@@ -21,11 +22,14 @@ class Platform extends Level
     this.isMoving = false;
     this.currentSteps = 0;
     
+    img = loadImage("wood.png");
+    
     me = new FBox(w, h);
     me.setStatic(true);
     me.setRestitution(restitution);
     me.setPosition(x, y);
     me.setRotation(rot);
+    //me.attachImage(img);
     world.add(me);
   }
   

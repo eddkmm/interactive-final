@@ -9,6 +9,7 @@ class Level
   float restitution;
   boolean isScrolling;
   
+  Goal goal;
   Helper helper;
   ArrayList<Enemy> enemies = new ArrayList<Enemy>();
   ArrayList<Platform> platforms = new ArrayList<Platform>();
@@ -27,12 +28,12 @@ class Level
     this.isScrolling = true;
   }
   
-  void initHelper(float w, float h)
+  void initHelper(FWorld world, float w, float h)
   {
-    helper = new Helper(w, h);
+    helper = new Helper(world, w, h);
   }
   
-  void display()
+  void display(FWorld world, Main m)
   {
     pushMatrix();
     translate(-scrollX, 0);
@@ -43,10 +44,26 @@ class Level
 //    world.setEdges(scrollX, 0, scrollX + width, height);
 //    world.setEdges(-width + scrollX, -height, width * 100, height);
     
+    m.display();
     drawHelper();
     
     if (isScrolling)
       scrollX += speed;
+      
+    if (fellOffMap()) {
+      println("YOU DED");
+      lastScrollX = scrollX;
+      scrollX = 0;
+      globalState = 2;
+    }
+      
+    if (isTouchingGoal())
+      onEndLevel();
+  }
+  
+  void onEndLevel()
+  {
+    println("YOU WIN");
   }
   
   boolean drawHelper()
@@ -83,7 +100,7 @@ class Level
         helper.lastY = mv[0].y;
         
         helper.me.setPosition(mv[0].x + scrollX, mv[0].y);
-        helper.me.adjustPosition(-helper.me.getWidth(), helper.me.getHeight());
+        helper.me.adjustPosition(-helper.me.getWidth(), helper.me.getHeight() + 50);
         //println("X: " + mv[0].x + " | Y: " + mv[0].y + " " + millis());
         //helper.setRotation(calculateAngle(mv[0].x, mv[0].y, mv[1].x, mv[1].y));
   
@@ -104,24 +121,40 @@ class Level
     return true;
   }
   
-  Platform addStaticPlatform(float x, float y, float w, float h, float rot)
+  boolean fellOffMap()
   {
-    Platform p = new Platform(0, x, y, w, h, rot, 0, restitution);
+    return (mischief[currentLevel].main.getY() >= height) ? true : false;
+  }
+  
+  boolean isTouchingGoal()
+  {
+    return (mischief[currentLevel].main.getX() >= goal.x) ? true : false;
+  }
+  
+  Goal addGoal(FWorld world, float x, float y)
+  {
+    goal = new Goal(world, x, y);
+    return goal;
+  }
+  
+  Platform addStaticPlatform(FWorld world, float x, float y, float w, float h, float rot)
+  {
+    Platform p = new Platform(world, 0, x, y, w, h, rot, 0, restitution);
     platforms.add(p);
     return p;
   }
   
-  Platform addMovingPlatform(int dir, float x, float y, float w, float h, float rot, float speed)
+  Platform addMovingPlatform(FWorld world, int dir, float x, float y, float w, float h, float rot, float speed)
   {
-    Platform p = new Platform(dir, x, y, w, h, rot, speed, restitution);
+    Platform p = new Platform(world, dir, x, y, w, h, rot, speed, restitution);
     p.setMoving(true);
     platformsMoving.add(p);
     return p;
   }
   
-  boolean addEnemy(Platform home, float w, float h, float speed)
+  boolean addEnemy(FWorld world, Platform home, float w, float h, float speed)
   {   
-    Enemy e = new Enemy(home, w, h, speed);
+    Enemy e = new Enemy(world, home, w, h, speed);
     
     if (e == null)
       return false;

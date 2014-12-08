@@ -6,7 +6,7 @@ class Enemy extends Level
   float y;
   float speed;
   
-  Enemy(Platform home, float w, float h, float speed) throws IllegalArgumentException
+  Enemy(FWorld world, Platform home, float w, float h, float speed) throws IllegalArgumentException
   {
     super();
     if (!platforms.contains(home) || !platformsMoving.contains(home))

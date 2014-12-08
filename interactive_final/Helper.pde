@@ -5,7 +5,7 @@ class Helper extends Level
   float lastX;
   float lastY;
   
-  Helper(float w, float h)
+  Helper(FWorld world, float w, float h)
   {
     me = new FBox(w, h);
     me.setStatic(true);
