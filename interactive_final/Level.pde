@@ -155,6 +155,8 @@ class Level
         // Clean Up
         perspective();
         popMatrix();
+      } else {
+        println("Marker not detected... " + millis());
       }
     } catch (Exception e) {
       println("Issue with AR detection ... resuming regular operation ..");

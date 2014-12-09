@@ -73,6 +73,9 @@ PImage house;
 PImage c_press;
 PImage c_unpress;
 PImage title;
+PImage bg;
+PImage fire;
+PImage eustace;
 
 long lastRedemptionEnter = 0;
 
@@ -81,10 +84,13 @@ void setup()
   size(640, 480, OPENGL);
   smooth();
   
+  bg = loadImage("cbg.png");
   house = loadImage("house.png");
   c_press = loadImage("c_press.png");
   c_unpress = loadImage("c_unpress.png");
   title = loadImage("title.png");
+  fire = loadImage("fire.png");
+  eustace = loadImage("eustace.gif");
   
   video = new Capture(this, width, height);
   video.start();
@@ -209,7 +215,6 @@ void draw()
       reset(currentLevel);
     }
   }
-  
 }
 
 void drawTitleScreen()
@@ -221,6 +226,11 @@ void drawTitleScreen()
   image(c_press, 100, 350, 75, 75);
   fill(255,0,0);
   text("Click Courage to Play", 20, 325);
+}
+
+void drawGameOver()
+{
+  //
 }
 
 void mouseClicked()
@@ -295,6 +305,10 @@ void drawRedemptionLevel()
   }
   background(0);
   drawYNP();
+  tint(255, 200);
+  imageMode(CENTER);
+  image(fire, width / 2, height - (286 / 2));
+  noTint();
   if (!drawVideo()) {
     failedDisplay++;
     if (failedDisplay > 60) {
@@ -319,6 +333,8 @@ void drawRedemptionLevel()
 void drawLevel()
 {
   background(255);
+  imageMode(CENTER);
+  image(bg, width / 2, height / 2);
   //drawYNP();
   if (!drawVideo()) {
     failedDisplay++;
@@ -375,9 +391,33 @@ void onEndLevel()
   scrollX = 0;
   if (currentLevel < 5)
     currentLevel++;
+    // TEMPORARY - REMOVE LATER
+    if (currentLevel == 2)
+      resetEverything();
   else {
     // GAME OVER STUFF
   }
+}
+
+void resetEverything()
+{
+  currentLevel = 0;
+  scrollX = 0;
+  globalState = 0;
+  
+  mischief[currentLevel].main.setPosition(width / 2 + scrollX, 0);
+  mischief[currentLevel].main.setVelocity(0, 0);
+  level[currentLevel].helper.me.setPosition(width / 2 + scrollX, height / 2);
+  
+  // Reset overconfidence meter
+  currentConfidence = 0;
+  overconfident = false;
+  level[currentLevel].helper.me.setSensor(false);
+  level[currentLevel].helper.me.setFill(255);
+  
+  redemptionMain.main.setPosition(width / 2, 0);
+  redemptionMain.main.setRotation(0);
+  redemptionMain.main.setVelocity(0, 0);
 }
 
 // Calculates the angle from one 2d point to another
