@@ -13,29 +13,34 @@ class Platform extends Level
   
   int currentSteps;
   
-  Platform(FWorld world, int dir, float x, float y, float w, float h, float rot, float speed, float restitution)
+  Platform(FWorld world, int dir, float x, float y, float w, float h, float rot, float speed, float restitution, boolean isMoving, int steps)
   {
+    this.x = x;
+    this.y = y;
     this.dir = dir;
     this.rot = rot;
-    this.steps = 0;
+    this.steps = steps;
     this.speed = speed;
-    this.isMoving = false;
+    this.isMoving = isMoving;
     this.currentSteps = 0;
     
     img = loadImage("wood.png");
     
     me = new FBox(w, h);
     me.setStatic(true);
+    me.setFillColor(color(random(255), random(255), random(255)));
     me.setRestitution(restitution);
     me.setPosition(x, y);
     me.setRotation(rot);
-    //me.attachImage(img);
+    me.setDensity(50);
     world.add(me);
   }
   
   void setMoving(boolean isMoving)
   {
     this.isMoving = isMoving;
+//    if (dir == 2)
+//      me.setRestition(speed);
   }
   
   void setSteps(int steps)
@@ -49,38 +54,38 @@ class Platform extends Level
       return;
       
     switch(dir) {
-      case 0:
-        x += speed;
+      case PLATFORM_DIR_RIGHT:
+        this.x += speed;
         break;
-      case 1:
-        x -= speed;
+      case PLATFORM_DIR_LEFT:
+        this.x -= speed;
         break;
-      case 2:
-        y -= speed;
+      case PLATFORM_DIR_UP:
+        this.y -= speed;
         break;
-      case 3:
-        y += speed;
+      case PLATFORM_DIR_DOWN:
+        this.y += speed;
         break;
     }
     currentSteps++;
     if (currentSteps >= steps) {
       currentSteps = 0;
       switch(dir) {
-        case 0:
-          dir = 1;
+        case PLATFORM_DIR_RIGHT:
+          dir = PLATFORM_DIR_LEFT;
           break;
-        case 1:
-          dir = 0;
+        case PLATFORM_DIR_LEFT:
+          dir = PLATFORM_DIR_RIGHT;
           break;
-        case 2:
-          dir = 3;
+        case PLATFORM_DIR_UP:
+          dir = PLATFORM_DIR_DOWN;
           break;
-        case 3:
-          dir = 2;
+        case PLATFORM_DIR_DOWN:
+          dir = PLATFORM_DIR_UP;
           break;
       }
     }
-    me.setPosition(x, y);
+    me.setPosition(this.x, this.y);
     
   }
   

@@ -8,6 +8,7 @@ class Level
 //  float scrollX;
   float restitution;
   boolean isScrolling;
+  boolean isRedemption;
   
   Goal goal;
   Helper helper;
@@ -17,15 +18,12 @@ class Level
   
   Level()
   {
-//    world = new FWorld(-width, -height, width * 10, height * 2);
-//    world.setEdges();
-//    world.setGrabbable(false);
-//    world.setGravity(0, 512);
     
     this.speed = 2;
 //    this.scrollX = 0;
     this.restitution = 0;
     this.isScrolling = true;
+    this.isRedemption = false;
   }
   
   void initHelper(FWorld world, float w, float h)
@@ -35,11 +33,23 @@ class Level
   
   void display(FWorld world, Main m)
   {
-    pushMatrix();
-    translate(-scrollX, 0);
-    world.step();
-    world.draw();
-    popMatrix();
+    if (globalState == 2 && !isRedemption)
+      return;
+      
+    if (isScrolling) {
+      pushMatrix();
+      translate(-scrollX, 0);
+      for (Platform p : platformsMoving)
+        p.updateMovement();
+      world.step();
+      world.draw();
+      popMatrix();
+    } else {
+      for (Platform p : platformsMoving)
+        p.updateMovement();
+      world.step();
+      world.draw();
+    }
     
 //    world.setEdges(scrollX, 0, scrollX + width, height);
 //    world.setEdges(-width + scrollX, -height, width * 100, height);
@@ -47,23 +57,44 @@ class Level
     m.display();
     drawHelper();
     
-    if (isScrolling)
+    if (isScrolling) {
       scrollX += speed;
-      
-    if (fellOffMap()) {
-      println("YOU DED");
-      lastScrollX = scrollX;
-      scrollX = 0;
-      globalState = 2;
+      if (mischief[currentLevel].main.getX() > scrollX + width - 100) {
+        mischief[currentLevel].main.setVelocity(0, 0);
+        //mischief[currentLevel].main.addForce(mischief[currentLevel].main.getX() - 10, mischief[currentLevel].main.getY());
+      }
+      if (mischief[currentLevel].main.getX() < scrollX + 100) {
+        mischief[currentLevel].main.adjustVelocity(10, 0);
+        //mischief[currentLevel].main.addForce(mischief[currentLevel].main.getX() - 10, mischief[currentLevel].main.getY());
+      }
+    }
+    
+    if (overconfident) {
+      if (lastOverconfidence + 3000 < millis()) {
+        overconfident = false;
+        helper.me.setSensor(false);
+        helper.me.setFill(255);
+      }
+    }
+    
+    if (currentConfidence >= maxConfidence && !overconfident) {
+      overconfident = true;
+      lastOverconfidence = millis();
+      helper.me.setSensor(true);
+      helper.me.setFill(0, 100);
     }
       
-    if (isTouchingGoal())
+    if (fellOffMap() && !isRedemption) {
+      //println("YOU DED");
+      lastScrollX = scrollX;
+      scrollX = 0;
+      lastRedemptionEnter = millis();
+      globalState = 2;
+      return;
+    }
+      
+    if (isTouchingGoal() && !isRedemption)
       onEndLevel();
-  }
-  
-  void onEndLevel()
-  {
-    println("YOU WIN");
   }
   
   boolean drawHelper()
@@ -88,8 +119,18 @@ class Level
         // note that the marker is 80 x 80
         
         float half = float(width / 2);
+        float rot = radians(180) - calculateAngle(mv[0].x, mv[0].y, mv[1].x, mv[1].y);
         
-        helper.me.setRotation(radians(180) - calculateAngle(mv[0].x, mv[0].y, mv[1].x, mv[1].y));
+        if (!helper.limitRot)
+          helper.me.setRotation(rot);
+        else {
+          float deg = degrees(rot);
+          //println("deg: " + deg);
+          if (deg > 135 && deg < 225)
+            helper.lastR = rot;
+            
+          helper.me.setRotation(helper.lastR);
+        }
         
         if (mv[0].x > half)
           mv[0].x -= (mv[0].x - half) * 2;
@@ -99,8 +140,11 @@ class Level
         helper.lastX = mv[0].x;
         helper.lastY = mv[0].y;
         
-        helper.me.setPosition(mv[0].x + scrollX, mv[0].y);
-        helper.me.adjustPosition(-helper.me.getWidth(), helper.me.getHeight() + 50);
+        helper.me.setPosition(mv[0].x + ((isScrolling) ? scrollX : 0), mv[0].y);
+        if (!helper.limitRot)
+          helper.me.adjustPosition(-helper.me.getWidth(), helper.me.getHeight() + 50);
+        else
+          helper.me.adjustPosition(-50, 100);
         //println("X: " + mv[0].x + " | Y: " + mv[0].y + " " + millis());
         //helper.setRotation(calculateAngle(mv[0].x, mv[0].y, mv[1].x, mv[1].y));
   
@@ -116,19 +160,26 @@ class Level
       println("Issue with AR detection ... resuming regular operation ..");
       //return false;
     }
-    if (!detected)
+    if (!detected && isScrolling)
       helper.me.adjustPosition(speed, 0);
     return true;
   }
   
   boolean fellOffMap()
   {
-    return (mischief[currentLevel].main.getY() >= height) ? true : false;
+    return (mischief[currentLevel].main.getY() >= height
+    || mischief[currentLevel].main.getX() > scrollX + width
+    || mischief[currentLevel].main.getX() < scrollX) ? true : false;
   }
   
   boolean isTouchingGoal()
   {
     return (mischief[currentLevel].main.getX() >= goal.x) ? true : false;
+  }
+  
+  void setRestitution(float restitution)
+  {
+    this.restitution = restitution;
   }
   
   Goal addGoal(FWorld world, float x, float y)
@@ -139,14 +190,15 @@ class Level
   
   Platform addStaticPlatform(FWorld world, float x, float y, float w, float h, float rot)
   {
-    Platform p = new Platform(world, 0, x, y, w, h, rot, 0, restitution);
+    Platform p = new Platform(world, 0, x, y, w, h, rot, 0, restitution, false, 0);
     platforms.add(p);
     return p;
   }
   
-  Platform addMovingPlatform(FWorld world, int dir, float x, float y, float w, float h, float rot, float speed)
+  Platform addMovingPlatform(FWorld world, int dir, float x, float y, float w, float h, float rot, float speed, int steps)
   {
-    Platform p = new Platform(world, dir, x, y, w, h, rot, speed, restitution);
+    Platform p = new Platform(world, dir, x, y, w, h, rot, speed, restitution, true, steps);
+    //p.me.setBullet(true);
     p.setMoving(true);
     platformsMoving.add(p);
     return p;

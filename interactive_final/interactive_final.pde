@@ -27,9 +27,6 @@ PImage brick;
 
 Button buttonBegin;
 
-// this object does it all for us!
-//MultipleColorTracker theTracker;
-
 // AR marker object
 MultiMarker augmentedRealityMarkers;
 
@@ -61,10 +58,33 @@ float lastScrollX;
 int globalState;
 int currentLevel;
 
+final int PLATFORM_DIR_RIGHT = 0;
+final int PLATFORM_DIR_LEFT = 1;
+final int PLATFORM_DIR_UP = 2;
+final int PLATFORM_DIR_DOWN = 3;
+
+int currentConfidence = 0;
+int maxConfidence = 200;
+
+boolean overconfident = false;
+long lastOverconfidence;
+
+PImage house;
+PImage c_press;
+PImage c_unpress;
+PImage title;
+
+long lastRedemptionEnter = 0;
+
 void setup()
 {
   size(640, 480, OPENGL);
   smooth();
+  
+  house = loadImage("house.png");
+  c_press = loadImage("c_press.png");
+  c_unpress = loadImage("c_unpress.png");
+  title = loadImage("title.png");
   
   video = new Capture(this, width, height);
   video.start();
@@ -73,17 +93,17 @@ void setup()
   Fisica.init(this);
   
   for (int i = 0; i < 5; i++) {
-    world[i] = new FWorld(-width, -height, width * 100, height * 2);
-    world[i].setEdges(-width, 0, width * 100, height * 2);
+    world[i] = new FWorld(-width, -height, width * 100, height);
+    world[i].setEdges(-width, -height, width * 100, height * 2);
     //world.setEdges();
     world[i].setGrabbable(false);
     world[i].setGravity(0, 512);
     levelCreator(i);
   }
   redemptionWorld = new FWorld(-width, -height, width * 2, height * 2);
-  redemptionWorld.setEdges(-width, 0, width, height);
+  redemptionWorld.setEdges(-width, -height, width, height * 2);
   redemptionWorld.setGrabbable(false);
-  redemptionWorld.setGravity(0, 512);
+  redemptionWorld.setGravity(0, 256);
   createRedemptionLevel();
   scrollX = 0;
   
@@ -114,7 +134,7 @@ void setup()
   ynpLast = 0;
   ynpReverse = false;
   
-  globalState = 1;
+  globalState = 0;
   currentLevel = 0;
 }
 
@@ -167,6 +187,7 @@ void draw()
   switch(globalState) {
     case 0:
       // TITLE SCREEN
+      drawTitleScreen();
       break;
     case 1:
       // LEVEL
@@ -191,6 +212,26 @@ void draw()
   
 }
 
+void drawTitleScreen()
+{
+  image(house, 0, 0, 640, 480);
+  image(title, 175, 25, 350, 173);
+  textSize(20);
+  
+  image(c_press, 100, 350, 75, 75);
+  fill(255,0,0);
+  text("Click Courage to Play", 20, 325);
+}
+
+void mouseClicked()
+{
+  if (globalState == 0) {
+    if (mouseX >= 100 && mouseX <= 175 && mouseY >= 350 && mouseY <= 425) {
+      globalState = 1;
+    }
+  }
+}
+
 // Displays "You're Not Perfect" gif
 void drawYNP()
 {
@@ -210,6 +251,48 @@ void drawYNP()
 
 void drawRedemptionLevel()
 {
+  if (redemptionMain.main.getY() > height) {
+    // GAME OVER SON
+    currentLevel = 0;
+    scrollX = 0;
+    globalState = 0;
+    
+    mischief[currentLevel].main.setPosition(width / 2 + scrollX, 0);
+    mischief[currentLevel].main.setVelocity(0, 0);
+    level[currentLevel].helper.me.setPosition(width / 2 + scrollX, height / 2);
+    
+    // Reset overconfidence meter
+    currentConfidence = 0;
+    overconfident = false;
+    level[currentLevel].helper.me.setSensor(false);
+    level[currentLevel].helper.me.setFill(255);
+    
+    redemptionMain.main.setPosition(width / 2, 0);
+    redemptionMain.main.setRotation(0);
+    redemptionMain.main.setVelocity(0, 0);
+    return;
+  }
+  println("REDEMPTION - " + millis() + " | LAST ENTER - " + lastRedemptionEnter);
+  if (lastRedemptionEnter + 10000 < millis()) {
+    // REDEEMED
+    scrollX = lastScrollX;
+    mischief[currentLevel].main.setPosition(width / 2 + scrollX, 0);
+    mischief[currentLevel].main.setVelocity(0, 0);
+    level[currentLevel].helper.me.setPosition(width / 2 + scrollX, height / 2);
+    globalState = 1;
+    
+    // Reset overconfidence meter
+    currentConfidence = 0;
+    overconfident = false;
+    level[currentLevel].helper.me.setSensor(false);
+    level[currentLevel].helper.me.setFill(255);
+    
+    redemptionMain.main.setPosition(width / 2, 0);
+    redemptionMain.main.setRotation(0);
+    redemptionMain.main.setVelocity(0, 0);
+    println("REDEEMED!");
+    return;    
+  }
   background(0);
   drawYNP();
   if (!drawVideo()) {
@@ -255,7 +338,9 @@ void drawLevel()
   failedDisplay = 0;
   
   level[currentLevel].display(world[currentLevel], mischief[currentLevel]);
-  mischief[currentLevel].main.adjustPosition(level[currentLevel].speed, 0);
+  mischief[currentLevel].main.adjustVelocity(level[currentLevel].speed, 0);
+  drawGUI();
+  //mischief[currentLevel].main.adjustPosition(level[currentLevel].speed, 0);
 }
 
 // Returns true if the video and AR fiducial marker are displaying properly, else false
@@ -282,6 +367,17 @@ boolean drawVideo()
     return false;
     
   return true;
+}
+
+void onEndLevel()
+{
+  println("YOU WIN");
+  scrollX = 0;
+  if (currentLevel < 5)
+    currentLevel++;
+  else {
+    // GAME OVER STUFF
+  }
 }
 
 // Calculates the angle from one 2d point to another
