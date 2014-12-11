@@ -404,7 +404,7 @@ void onEndLevel()
     if (currentLevel == 4)
       //resetEverything();
       //display ending stuff here
-      //globalState = 4;
+      //globalState = 4; ending stuff!!
   else {
     // GAME OVER STUFF
   }
