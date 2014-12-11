@@ -206,6 +206,10 @@ void draw()
     case 3:
       // GAME OVER
       break;
+    case 4:
+      // GAME CLEAR
+      //drawEnding();
+      break;
   }
   
   //buttonBegin.display();
@@ -400,6 +404,7 @@ void onEndLevel()
     if (currentLevel == 4)
       //resetEverything();
       //display ending stuff here
+      //globalState = 4;
   else {
     // GAME OVER STUFF
   }
