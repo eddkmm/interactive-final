@@ -233,6 +233,11 @@ void drawGameOver()
   //
 }
 
+void drawEnding()
+{
+  //ending stuff goes here 
+}
+
 void mouseClicked()
 {
   if (globalState == 0) {
@@ -392,8 +397,9 @@ void onEndLevel()
   if (currentLevel < 5)
     currentLevel++;
     // TEMPORARY - REMOVE LATER
-    if (currentLevel == 2)
-      resetEverything();
+    if (currentLevel == 4)
+      //resetEverything();
+      //display ending stuff here
   else {
     // GAME OVER STUFF
   }
