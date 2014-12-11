@@ -195,6 +195,64 @@ boolean levelCreator(int levelID)
       level[2].addGoal(world[0], lastX, height / 2);
       break;
     case 3:
+      mischief[3] = new Main(world[3], width / 2, 0);
+      level[3] = new Level();
+      level[3].restitution = 0.5;
+      level[3].initHelper(world[3], 75, 25);
+
+      p = level[3].addStaticPlatform(world[3], lastX, (height / 2), 500, 30, 0);
+      lastX += p.me.getWidth() + 250;
+      
+      p = level[3].addMovingPlatform(world[3], PLATFORM_DIR_DOWN, lastX, (height / 2) - 75, 500, 30, 0, 1.5, 150);
+      lastX += p.me.getWidth() + 250;
+      
+      p = level[3].addStaticPlatform(world[3], lastX, (height / 2), 500, 30, 0);
+      lastX += p.me.getWidth() + 250;
+      
+      p = level[3].addMovingPlatform(world[3], PLATFORM_DIR_DOWN, lastX, (height / 2) - 75, 500, 30, 0, 1.5, 150);
+      lastX += p.me.getWidth() + 250;
+      
+      p = level[3].addStaticPlatform(world[3], lastX, (height / 2), 500, 30, 0);
+      lastX += p.me.getWidth() + 250;
+      
+      p = level[3].addStaticPlatform(world[3], lastX, (height / 2) - 75, 500, 30, 0);
+      lastX += p.me.getWidth() + 250;
+      
+      p = level[3].addStaticPlatform(world[3], lastX, (height / 2), 500, 30, radians(140));
+      lastX += p.me.getWidth() + 250;
+      
+      p = level[3].addMovingPlatform(world[3], PLATFORM_DIR_UP, lastX, (height / 2) + 75, 500, 30, 0, 1.5, 150);
+      lastX += p.me.getWidth() + 250;
+      
+      p = level[3].addMovingPlatform(world[3], PLATFORM_DIR_UP, lastX, (height / 2) + 75, 500, 30, 0, 1.5, 150);
+      lastX += p.me.getWidth() + 250;
+      
+      p = level[3].addMovingPlatform(world[3], PLATFORM_DIR_DOWN, lastX, (height / 2) - 75, 500, 30, 0, 1.5, 150);
+      lastX += p.me.getWidth() + 250;
+      
+      p = level[3].addMovingPlatform(world[3], PLATFORM_DIR_UP, lastX, (height / 2) + 75, 500, 30, 0, 1.5, 150);
+      lastX += p.me.getWidth() + 250;
+      
+      p = level[3].addMovingPlatform(world[3], PLATFORM_DIR_DOWN, lastX, (height / 2) - 75, 500, 30, 0, 1.5, 150);
+      lastX += p.me.getWidth() + 250;
+      
+      
+      p = level[3].addMovingPlatform(world[3], PLATFORM_DIR_DOWN, lastX, (height / 2) - 75, 250, 30, radians(140), 1.5, 150);
+      lastX += p.me.getWidth() + 250;
+      
+      p = level[3].addMovingPlatform(world[3], PLATFORM_DIR_UP, lastX, (height / 2) + 75, 250, 30, 0, 1.5, 150);
+      lastX += p.me.getWidth() + 250;
+      
+      p = level[3].addMovingPlatform(world[3], PLATFORM_DIR_DOWN, lastX, (height / 2) - 75, 250, 30, radians(40), 1.5, 150);
+      lastX += p.me.getWidth() + 250;
+      
+      p = level[3].addMovingPlatform(world[3], PLATFORM_DIR_UP, lastX, (height / 2) + 75, 250, 30, 0, 1.5, 150);
+      lastX += p.me.getWidth() + 250;
+      
+      p = level[3].addMovingPlatform(world[3], PLATFORM_DIR_DOWN, lastX, (height / 2) - 75, 250, 30, radians(140), 1.5, 150);
+      lastX += p.me.getWidth() + 250;
+      
+      level[3].addGoal(world[0], lastX, height / 2);
       break;
     case 4:
       break;
