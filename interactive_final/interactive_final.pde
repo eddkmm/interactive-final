@@ -1,3 +1,11 @@
+import ddf.minim.*;
+
+// main audio controller
+Minim minim;
+
+// audio files - we need one of these for each sound we want to play
+AudioPlayer endcredits;
+
 import fisica.*;
 //import gifAnimation.*;
 //import java.awt.Button;
@@ -73,6 +81,7 @@ PImage house;
 PImage c_press;
 PImage c_unpress;
 PImage title;
+PImage ending;
 PImage bg;
 PImage fire;
 PImage eustace;
@@ -84,11 +93,14 @@ void setup()
   size(640, 480, OPENGL);
   smooth();
   
+  endcredits = minim.loadFile("courage_ending.mp3");
+  
   bg = loadImage("cbg.png");
   house = loadImage("house.png");
   c_press = loadImage("c_press.png");
   c_unpress = loadImage("c_unpress.png");
   title = loadImage("title.png");
+  ending = loadImage("end.png");
   fire = loadImage("fire.png");
   eustace = loadImage("eustace.gif");
   
@@ -118,7 +130,7 @@ void setup()
   
   //mischief = new Main(width / 2, 0);
   
-  brick = loadImage("brick.png");
+  //brick = loadImage("brick.png");
   
   rxPos = 320;
   ryPos = 740;
@@ -239,6 +251,8 @@ void drawGameOver()
 
 void drawEnding()
 {
+  image(ending, 0, 0, 640, 480);
+  endcredits.play();
   //ending stuff goes here 
 }
 
