@@ -1,10 +1,10 @@
-import ddf.minim.*;
+//import ddf.minim.*;
 
 // main audio controller
-Minim minim;
+//Minim minim;
 
 // audio files - we need one of these for each sound we want to play
-AudioPlayer endcredits;
+//AudioPlayer endcredits;
 
 import fisica.*;
 //import gifAnimation.*;
@@ -93,7 +93,7 @@ void setup()
   size(640, 480, OPENGL);
   smooth();
   
-  endcredits = minim.loadFile("courage_ending.mp3");
+  //endcredits = minim.loadFile("courage_ending.mp3");
   
   bg = loadImage("cbg.png");
   house = loadImage("house.png");
@@ -220,7 +220,7 @@ void draw()
       break;
     case 4:
       // GAME CLEAR
-      //drawEnding();
+      drawEnding();
       break;
   }
   
@@ -252,7 +252,7 @@ void drawGameOver()
 void drawEnding()
 {
   image(ending, 0, 0, 640, 480);
-  endcredits.play();
+  //endcredits.play();
   //ending stuff goes here 
 }
 
@@ -418,7 +418,7 @@ void onEndLevel()
     if (currentLevel == 4)
       //resetEverything();
       //display ending stuff here
-      //globalState = 4; ending stuff!!
+      globalState = 4; ending stuff!!
   else {
     // GAME OVER STUFF
   }
